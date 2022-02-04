@@ -27,9 +27,11 @@ pipeline {
             }
         }
         stage('Push Docker Image') {
-            steps { 
-                sh 'sudo docker login -u djdockerhub -p djdockerhub@2022'
-            	sh 'sudo docker push djdockerhub/simplilearn-devops-project3:${docker_tag}'
+            steps {
+                withCredentials([string(credentialsId: 'docker_hub_password', variable: 'docker_hub_password')]) {
+                    sh 'sudo docker login -u djdockerhub -p ${docker_hub_password}'
+                }
+                sh 'sudo docker push djdockerhub/simplilearn-devops-project3:${docker_tag}'
             }
         }
         stage('Pull Docker Image') {
