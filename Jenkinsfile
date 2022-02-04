@@ -1,39 +1,65 @@
 pipeline {
-    agent any
+    environment { 
+        docker_tag = getCommitRev()
+        docker_container = 'simplilearn-devops-project3'
+    }
 
+    agent any
     stages {
-        stage('User') {
-            steps {
-                sh 'whoami'
-            }
-        }
-        stage('Checkout') {
+      stage('Checkout Repository') {
             steps {
                 git branch: 'main', url: 'https://github.com/DevendraJadhav4/simplilearn-devops-project3.git'
             }
         }
-        stage('Test') {
+        stage('Execute Unit Tests') {
             steps {
                 sh 'mvn test'
             }
         }
-        stage('Package') {
+        stage('Create Package') {
             steps {
                 sh 'mvn clean package'
             }
         }
-        stage('Copy') {
+        stage('Build Docker Image') {
             steps {
-                sh 'sudo -s cp ./target/project3-0.0.1-SNAPSHOT.jar /home/devendrajadhav4/project3/'
+            	sh 'sudo docker build -t djdockerhub/simplilearn-devops-project3:${docker_tag} .'
             }
         }
-        stage('Deploy') {
-            steps {
-                sh 'sudo -s'
-                sh 'sudo su devendrajadhav4'
-                sh 'sudo chmod 777 /home/devendrajadhav4/project3/'
-                sh 'sudo nohup java -jar /home/devendrajadhav4/project3/project3-0.0.1-SNAPSHOT.jar >/home/devendrajadhav4/project3/server.log &'
+        stage('Push Docker Image') {
+            steps { 
+                sh 'sudo docker login -u djdockerhub -p djdockerhub@2022'
+            	sh 'sudo docker push djdockerhub/simplilearn-devops-project3:${docker_tag}'
             }
         }
+        stage('Pull Docker Image') {
+            steps { 
+                sh 'sudo docker pull djdockerhub/simplilearn-devops-project3:${docker_tag}'
+            }
+        }
+        stage('Stop Docker Container'){
+            steps{
+                script{
+                    sh 'sudo chmod 666 /var/run/docker.sock'
+                    def doc_containers = sh(returnStdout: true, script: 'sudo docker container ps -aq -f name=${docker_container}').replaceAll("\n", " ") 
+                    if (doc_containers) {
+                        sh "echo Docker Containers ${doc_containers} Found"
+                        sh "sudo docker stop ${doc_containers}"
+                        sh "sudo docker container rm -f ${doc_containers}"
+                    }
+                    
+                }
+            }
+        }
+        stage('Start Docker Container') {
+            steps { 
+                sh 'sudo docker run --name ${docker_container} -d -p 10000:10000 djdockerhub/simplilearn-devops-project3:${docker_tag}'
+            }
+        }
+
     }
+}
+def getCommitRev() {
+    def commitRev = sh returnStdout: true, script: 'git rev-parse --short HEAD'
+    return commitRev
 }
