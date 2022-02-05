@@ -3,7 +3,6 @@ pipeline {
         docker_tag = getCommitRev()
         docker_container = 'simplilearn-devops-project3'
     }
-
     agent any
     stages {
         stage('Checkout Repository') {
@@ -63,7 +62,6 @@ pipeline {
                 githubNotify account: 'DevendraJadhav4', context: 'Build Pipeline Successful', credentialsId: 'git_hub_credentials', description: '', gitApiUrl: '', repo: 'simplilearn-devops-project3', sha: "${docker_tag}", status: 'SUCCESS', targetUrl: ''
             }
         }
-
     }
 }
 def getCommitRev() {
