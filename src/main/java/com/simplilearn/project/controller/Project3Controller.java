@@ -8,7 +8,7 @@ public class Project3Controller {
 
 	@GetMapping("/")
 	public String index() {
-		return "### SimpliLearn - DevOps Certification Training - Project 3";
+		return "### SimpliLearn - DevOps Certification Training - Project 3 ###";
 	}
 
 }
