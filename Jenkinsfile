@@ -6,7 +6,7 @@ pipeline {
 
     agent any
     stages {
-      stage('Checkout Repository') {
+        stage('Checkout Repository') {
             steps {
                 git branch: 'main', url: 'https://github.com/DevendraJadhav4/simplilearn-devops-project3.git'
             }
@@ -58,10 +58,15 @@ pipeline {
                 sh 'sudo docker run --name ${docker_container} -d -p 10000:10000 djdockerhub/simplilearn-devops-project3:${docker_tag}'
             }
         }
+        stage('Notify Repository') {
+            steps {
+                githubNotify account: 'DevendraJadhav4', context: 'Build Pipeline Successful', credentialsId: 'git_hub_credentials', description: '', gitApiUrl: '', repo: 'simplilearn-devops-project3', sha: "${docker_tag}", status: 'SUCCESS', targetUrl: ''
+            }
+        }
 
     }
 }
 def getCommitRev() {
-    def commitRev = sh returnStdout: true, script: 'git rev-parse --short HEAD'
+    def commitRev = sh returnStdout: true, script: 'git log -n 1 main --pretty=format:"%H"'
     return commitRev
 }
